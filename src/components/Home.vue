@@ -7,6 +7,8 @@ import { useGetWorkspaceTasks } from "../composables/getworkspacetasks";
 const orgSwarm = '67bd2c66-8ee8-4e2e-a22b-6cdc5d805a85'
 const orgSNET = '5c29434c-e830-442b-b9f5-d2fb00ee7b34'
 
+const loaded = ref(false)
+
 let snet = ref({
   snetAmbassadorTeamTasks: { id: '42a619c8-6df7-452a-b7a5-376a07253e45', name: '', slug: '', tasks: [] },
   snetStrategyGuild: { id: '1917f12b-23e5-4858-a21f-b468bfc4510d', name: '', slug: '', tasks: [] },
@@ -44,29 +46,7 @@ let snetSlug = ref();
 let swarmSlug = ref()
 
 onMounted(async () => {
-  lastRefresh = parseInt(localStorage.getItem("refreshtime"))
-    ? parseInt(localStorage.getItem("refreshtime"))
-    : 0;
-  //localStorage.removeItem("snetWorkspaces");
-  if (parseInt(lastRefresh) < parseInt(Date.now()) - 30000) {
-    localStorage.setItem("refreshtime", Date.now());
-    lastRefresh = Date.now();
-    console.log("Reloading", snetWorkspaces, swarmWorkspaces, Date.now());
-    localStorage.removeItem("snetWorkspaces");
-    localStorage.removeItem("swarmWorkspaces");
-    await getDework();
-  } else {
-    snetWorkspaces = JSON.parse(localStorage.getItem("snetWorkspaces"));
-    swarmWorkspaces = JSON.parse(localStorage.getItem("swarmWorkspaces"));
-    snet.value = snetWorkspaces
-    swarm.value = swarmWorkspaces
-    if (snetWorkspaces == null) {
-      console.log("all_projects == null -> Reloading")
-      await getDework();
-    } else {
-      await getTasks()
-    }
-  }
+  await getDework();
 });
 
 function updateObjectWithSlugs(object, slugs) {
@@ -84,35 +64,41 @@ async function getsnetWorkspaces() {
   for (const key in snet.value) {
     const tasks = await useGetDeworkData(snet.value[key].id);
     snet.value[key].tasks = tasks.data.getWorkspace.tasks;
-    console.log("key", key)
+    //console.log("key", key)
   }
+}
 
+async function getswarmWorkspaces() {
   for (const key in swarm.value) {
     const tasks = await useGetDeworkData(swarm.value[key].id);
     swarm.value[key].tasks = tasks.data.getWorkspace.tasks;
-    console.log("key", key)
+    //console.log("key", key)
   }
 }
 
 async function getDework() {
+  loaded.value = false;
+  localStorage.removeItem("snetWorkspaces");
+  localStorage.removeItem("swarmWorkspaces");
   const snetSlugs = await useGetWorkspaceSlug(orgSNET);
   const swarmSlugs = await useGetWorkspaceSlug(orgSwarm);
   swarmSlug.value = swarmSlugs.data.getOrganization;
   snetSlug.value = snetSlugs.data.getOrganization;
   updateObjectWithSlugs(snet.value, snetSlugs);
   updateObjectWithSlugs(swarm.value, swarmSlugs);
-  console.log(snetSlugs, swarmSlugs)
-  console.log(snet.value, swarm.value);
+  //console.log(snetSlugs, swarmSlugs)
+  //console.log(snet.value, swarm.value);
   localStorage.setItem("snetWorkspaces", JSON.stringify(snet.value));
   localStorage.setItem("swarmWorkspaces", JSON.stringify(swarm.value));
   await getTasks();
+  loaded.value = true;
 }
 async function getTasks() {
-  console.log("Getting tasks...")
+  //console.log("Getting tasks...")
+  await getswarmWorkspaces();
   await getsnetWorkspaces();
   localStorage.setItem("snetWorkspaces", JSON.stringify(snet.value));
   localStorage.setItem("swarmWorkspaces", JSON.stringify(swarm.value));
-  console.log("done", snet.value, swarm.value)
 }
 function countAuditedTasks(tasks) {
   return tasks.filter(task => {
@@ -153,7 +139,7 @@ function openLink(id) {
     }
   }
   window.open(`https://app.dework.xyz/${organizationSlug}/${workspaceSlug}/view/board`, "_blank");
-  console.log('Open link for workspace ID:', id, swarmSlug.value, workspaceSlug, organizationSlug);
+  //console.log('Open link for workspace ID:', id, swarmSlug.value, workspaceSlug, organizationSlug);
 }
 
 async function exportData(id) {
@@ -195,6 +181,7 @@ async function exportData(id) {
           let doneAt = new Date(task.doneAt).toLocaleString("en-US", {month: "long", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true});
           activities += `, Task completed on ${doneAt}`;
       }
+      activities = activities.replace(/(\d{4}) at/g, "$1");
   
       csvContent += `"${name}","${link}","${tags}","${storyPoints}","${status}","${assignees}","${walletAddress}","${reward}","${dueDate}","${activities}"\n`;
   }
@@ -219,54 +206,67 @@ async function exportData(id) {
     document.body.removeChild(link);
   }, 0);
   
-  console.log('Export data for workspace ID:', id, organizationSlug, workspaceSlug, tasks.data.getWorkspace.tasks);
+  //console.log('Export data for workspace ID:', id, organizationSlug, workspaceSlug, tasks.data.getWorkspace.tasks);
 }
 
 </script>
 
 <template>
-  <div>
-    <table>
-      <thead>
-        <tr>
-          <th>Workspace</th>
-          <th>Audited</th>
-          <th>Not Audited</th>
-          <th>Status</th> <!-- New column -->
-          <th>Link</th>
-          <th>Export</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(workspace, key) in snet" :key="'snet-' + key">
-          <td>{{ workspace.name }}</td>
-          <td>{{ countAuditedTasks(workspace.tasks) }}</td>
-          <td>{{ countNonAuditedTasks(workspace.tasks) }}</td>
-          <td :class="{
-            'green-text': isAuditedTasksLoaded(workspace),
-            'red-text': !isWorkspaceReady(workspace)
-          }">{{ isWorkspaceReady(workspace) ? 'All Audited' : 'Not Audited' }}</td>
-          <td><button @click="openLink(workspace.id)">Open Link</button></td>
-          <td><button @click="exportData(workspace.id)">Export</button></td>
-        </tr>
-        <tr class="border-line"></tr> <!-- Add border line -->
-        <tr v-for="(workspace, key) in swarm" :key="'swarm-' + key">
-          <td>{{ workspace.name }}</td>
-          <td>{{ countAuditedTasks(workspace.tasks) }}</td>
-          <td>{{ countNonAuditedTasks(workspace.tasks) }}</td>
-          <td :class="{
-            'green-text': isAuditedTasksLoaded(workspace),
-            'red-text': !isWorkspaceReady(workspace)
-          }">{{ isWorkspaceReady(workspace) ? 'All Audited' : 'Not Audited' }}</td>
-          <td><button @click="openLink(workspace.id)">Open Link</button></td>
-          <td><button @click="exportData(workspace.id)">Export</button></td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="main">
+    <div>
+      <table>
+        <thead>
+          <tr>
+            <th>Workspace</th>
+            <th class="centered">Audited</th>
+            <th class="centered">Not Audited</th>
+            <th>Status</th> <!-- New column -->
+            <th>Link</th>
+            <th>Export</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>Swarm</tr> 
+          <tr v-for="(workspace, key) in swarm" :key="'swarm-' + key">
+            <td>{{ workspace.name }}</td>
+            <td class="centered">{{ countAuditedTasks(workspace.tasks) }}</td>
+            <td class="centered">{{ countNonAuditedTasks(workspace.tasks) }}</td>
+            <td :class="{
+              'green-text': isAuditedTasksLoaded(workspace),
+              'red-text': !isWorkspaceReady(workspace)
+            }">{{ isWorkspaceReady(workspace) ? 'All Audited' : 'Not Audited' }}</td>
+            <td><button @click="openLink(workspace.id)">Open Board</button></td>
+            <td><button @click="exportData(workspace.id)">Export csv</button></td>
+          </tr>
+          <tr>SNET</tr>
+          <tr v-for="(workspace, key) in snet" :key="'snet-' + key">
+            <td>{{ workspace.name }}</td>
+            <td class="centered">{{ countAuditedTasks(workspace.tasks) }}</td>
+            <td class="centered">{{ countNonAuditedTasks(workspace.tasks) }}</td>
+            <td :class="{
+              'green-text': isAuditedTasksLoaded(workspace),
+              'red-text': !isWorkspaceReady(workspace)
+            }">{{ isWorkspaceReady(workspace) ? 'All Audited' : 'Not Audited' }}</td>
+            <td><button @click="openLink(workspace.id)">Open Board</button></td>
+            <td><button @click="exportData(workspace.id)">Export csv</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <style>
+.main {
+  display: flex;
+  justify-content: center; /* align horizontal */
+  align-items: center; /* align vertical */
+}
+
+.centered {
+  text-align: center;
+}
+
 table {
   border-collapse: collapse;
 }
@@ -275,12 +275,8 @@ th,
 td {
   border: 1px solid #ddd;
   padding-left: 8px;
+  padding-right: 8px;
   font-size: 12px; /* Adjust the font size as needed */
-}
-
-.border-line {
-  border-top: 1px solid #000;
-  border-bottom: 1px solid #000;
 }
 
 .green-text {
