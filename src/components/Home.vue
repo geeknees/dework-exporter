@@ -102,12 +102,13 @@ async function getTasks() {
 }
 function countAuditedTasks(tasks) {
   return tasks.filter(task => {
-    return task.tags.some(tag => tag.label === 'Audited' || tag.label === 'audited');
+    return task.tags.some(tag => tag.label.toLowerCase().includes('audited'));
   }).length;
 }
+
 function countNonAuditedTasks(tasks) {
   return tasks.filter(task => {
-    return !task.tags.some(tag => tag.label === 'Audited' || tag.label === 'audited');
+    return !task.tags.some(tag => tag.label.toLowerCase().includes('audited'));
   }).length;
 }
 
