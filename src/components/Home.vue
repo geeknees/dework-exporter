@@ -32,7 +32,9 @@ let snet = ref({
 let swarm = ref({
   swarmMainProjects: { id: 'a27a9088-25c4-4286-9684-9641bd817bb0', name: '', slug: '', tasks: [] },
   swarmBountyBoard: { id: '6767c971-7dd6-438c-874c-facee8d0d7ce', name: '', slug: '', tasks: [] },
-  swarmLabsGeneral: { id: 'e1fdeeea-15cd-4039-9e8f-89f55f5d377d', name: '', slug: '', tasks: [] },
+  swarmEcoSystemMap: { id: 'c3d613f3-788d-43a2-88a2-2ecb844f72ea', name: '', slug: '', tasks: [] },
+  swarmTreasuryAndAccountingSystems: { id: 'e155ee05-6d6e-49be-ae6c-93d6a36d4d41', name: '', slug: '', tasks: [] },
+  swarmBountyDevelopment: { id: '2ecd3eef-b65e-44f4-b88f-e1777b5c9765', name: '', slug: '', tasks: [] },
   swarmPress: { id: 'de10bc5f-56bf-4ff6-95a6-ec963777b4b5', name: '', slug: '', tasks: [] },
   swarmATHnew: { id: '14e889ba-f591-435c-8e9e-b214f72c14f2', name: '', slug: '', tasks: [] },
   swarmSnet: { id: '75412cbc-dabe-4f6b-9cf2-41bde61553c6', name: '', slug: '', tasks: [] },
