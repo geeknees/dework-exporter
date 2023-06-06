@@ -167,6 +167,7 @@ async function exportData(id) {
   let csvContent = '"Name","Link","Tags","Story Points","Status","Assignees","Wallet Address","Reward","Due Date","Activities"\n';
   
   for (let task of tasks.data.getWorkspace.tasks) {
+    console.log("task", task)
       let name = task.name || '';
       let link = `https://app.dework.xyz/${organizationSlug}/${task.workspace.slug}?taskId=${task.id}`; 
       let tags = task.tags.map(t => t.label).join(',') || ''; 
@@ -176,7 +177,7 @@ async function exportData(id) {
       let walletAddress = ''; 
       let reward = ''; 
       let dueDate = task.dueDate || '';
-      let creator = task.creator.username; // Assuming creator is an object with a username property
+      let creator = (task.creator && task.creator.username)?task.creator.username:'no-username'; 
       let createdAt = new Date(task.createdAt).toLocaleString("en-US", {month: "long", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true});
       let activities = `${creator} created on ${createdAt}`;
   
