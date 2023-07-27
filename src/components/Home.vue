@@ -102,6 +102,7 @@ async function getTasks() {
   localStorage.setItem("snetWorkspaces", JSON.stringify(snet.value));
   localStorage.setItem("swarmWorkspaces", JSON.stringify(swarm.value));
 }
+/*
 function countAuditedTasks(tasks) {
   return tasks.filter(task => {
     return task.tags.some(tag => tag.label.toLowerCase().includes('audited'));
@@ -111,6 +112,24 @@ function countAuditedTasks(tasks) {
 function countNonAuditedTasks(tasks) {
   return tasks.filter(task => {
     return !task.tags.some(tag => tag.label.toLowerCase().includes('audited'));
+  }).length;
+}*/
+
+function countAuditedTasks(tasks) {
+  const auditedRegex = /\baudited\b/i;
+  const fundRequestRegex = /(?=.*\bfund\b)(?=.*\brequest\b).*/i;
+
+  return tasks.filter(task => {
+    return task.tags.some(tag => auditedRegex.test(tag.label) || fundRequestRegex.test(tag.label));
+  }).length;
+}
+
+function countNonAuditedTasks(tasks) {
+  const auditedRegex = /\baudited\b/i;
+  const fundRequestRegex = /(?=.*\bfund\b)(?=.*\brequest\b).*/i;
+
+  return tasks.filter(task => {
+    return !task.tags.some(tag => auditedRegex.test(tag.label) || fundRequestRegex.test(tag.label));
   }).length;
 }
 
@@ -222,8 +241,8 @@ async function exportData(id) {
         <thead>
           <tr>
             <th>Workspace</th>
-            <th class="centered">Audited</th>
-            <th class="centered">Not Audited</th>
+            <th class="centered">Fund Request</th>
+            <th class="centered">Not Fund Request</th>
             <th>Status</th> <!-- New column -->
             <th>Link</th>
             <th>Export</th>
