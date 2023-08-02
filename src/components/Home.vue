@@ -16,6 +16,7 @@ let snet = ref({
   snetTreasuryGuild: { id: '49a07d41-6717-40ca-9b24-a28a40885a4b', name: '', slug: '', tasks: [] },
   snetProcessGuild: { id: 'ecb72d11-022f-4f0f-b6ee-177a48097cf8', name: '', slug: '', tasks: [] },
   snetEducationGuild: { id: 'bb5ee1ff-fee2-4894-ab99-dc7e7350c15d', name: '', slug: '', tasks: [] },
+  snetIncubationGuild: { id: '195a8221-942c-4c41-9c06-c6349b5d2a70', name: '', slug: '', tasks: [] },
   snetTranslationWorkgroup: { id: 'd88291a1-7741-4177-aac4-87813f72cade', name: '', slug: '', tasks: [] },
   snetVideoWorkgroup: { id: '727308db-3066-4e6e-a54f-639b1f436a87', name: '', slug: '', tasks: [] },
   snetWritersWorkgroup: { id: '080753af-e1d3-40a8-a5e5-21c2c6b065c7', name: '', slug: '', tasks: [] },
