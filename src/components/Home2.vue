@@ -3,11 +3,16 @@ import { ref, onMounted, computed } from "vue";
 import { useGetDeworkData } from "../composables/getdeworkdata";
 import { useGetWorkspaceSlug } from "../composables/getworkspaceslug";
 import { useGetWorkspaceTasks } from "../composables/getworkspacetasks";
+import { useGetOrganizationDetails } from "../composables/getOrganizationDetails";
 
 const orgSwarm = '67bd2c66-8ee8-4e2e-a22b-6cdc5d805a85'
 const orgSNET = '5c29434c-e830-442b-b9f5-d2fb00ee7b34'
 
 const loaded = ref(false)
+
+//const snetOrgWorkspaces = await useGetOrganizationDetails(orgSNET);
+//const swarmOrgWorkspaces = await useGetOrganizationDetails(orgSwarm);
+//console.log(snetOrgWorkspaces, swarmOrgWorkspaces)
 
 let snet = ref({
   snetAmbassadorTeamTasks: { id: '42a619c8-6df7-452a-b7a5-376a07253e45', name: '', slug: '', tasks: [] },
@@ -81,6 +86,8 @@ async function getswarmWorkspaces() {
 
 async function getDework() {
   loaded.value = false;
+  //const workspaces = await useGetOrganizationDetails(orgSNET);
+  //console.log("workspaces", workspaces)
   localStorage.removeItem("snetWorkspaces");
   localStorage.removeItem("swarmWorkspaces");
   const snetSlugs = await useGetWorkspaceSlug(orgSNET);

@@ -1,10 +1,10 @@
 <script setup>
-import Home from './components/Home.vue'
+import Home2 from './components/Home2.vue'
 </script>
 
 <template>
   <div>
-    <Home />
+    <Home2 />
   </div>
 </template>
 
