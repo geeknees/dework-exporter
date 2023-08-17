@@ -5,16 +5,17 @@ import { useGetWorkspaceSlug } from "../composables/getworkspaceslug";
 import { useGetWorkspaceTasks } from "../composables/getworkspacetasks";
 import { useGetOrganizationDetails } from "../composables/getOrganizationDetails";
 
-const orgSwarm = '67bd2c66-8ee8-4e2e-a22b-6cdc5d805a85'
 const orgSNET = '5c29434c-e830-442b-b9f5-d2fb00ee7b34'
+const orgSwarm = '67bd2c66-8ee8-4e2e-a22b-6cdc5d805a85'
 
 const loaded = ref(false)
+let snet = ref({});
+let swarm = ref({});
+snet.value = await useGetOrganizationDetails(orgSNET);
+//swarm.value = await useGetOrganizationDetails(orgSwarm);
+//console.log(snet.value, swarm.value)
 
-//const snetOrgWorkspaces = await useGetOrganizationDetails(orgSNET);
-//const swarmOrgWorkspaces = await useGetOrganizationDetails(orgSwarm);
-//console.log(snetOrgWorkspaces, swarmOrgWorkspaces)
-
-let snet = ref({
+/*snet.value = {
   snetAmbassadorTeamTasks: { id: '42a619c8-6df7-452a-b7a5-376a07253e45', name: '', slug: '', tasks: [] },
   snetStrategyGuild: { id: '1917f12b-23e5-4858-a21f-b468bfc4510d', name: '', slug: '', tasks: [] },
   snetMarketingGuild: { id: 'ce409c08-64f8-4f4e-9996-27f8ac3b5974', name: '', slug: '', tasks: [] },
@@ -33,9 +34,9 @@ let snet = ref({
   snetDeepFundingTownHall: { id: '06a9a413-2fa8-4619-b1c0-25debbf4d496', name: '', slug: '', tasks: [] },
   snetDeepFundingCommunity: { id: '11f9023d-3134-4525-aedb-e69f506306de', name: '', slug: '', tasks: [] },
   snetDeepFundingXAmbassador: { id: 'c294c052-31b1-4c3f-9c2b-9d6eeea0ada6', name: '', slug: '', tasks: [] },
-});
+};*/
 
-let swarm = ref({
+swarm.value = {
   swarmMainProjects: { id: 'a27a9088-25c4-4286-9684-9641bd817bb0', name: '', slug: '', tasks: [] },
   swarmBountyBoard: { id: '6767c971-7dd6-438c-874c-facee8d0d7ce', name: '', slug: '', tasks: [] },
   swarmEcoSystemMap: { id: 'c3d613f3-788d-43a2-88a2-2ecb844f72ea', name: '', slug: '', tasks: [] },
@@ -45,8 +46,9 @@ let swarm = ref({
   swarmATHnew: { id: '14e889ba-f591-435c-8e9e-b214f72c14f2', name: '', slug: '', tasks: [] },
   swarmSnet: { id: '75412cbc-dabe-4f6b-9cf2-41bde61553c6', name: '', slug: '', tasks: [] },
   swarmVeterans: { id: 'fa90afaf-ec66-4f35-990c-e2524adbaa55', name: '', slug: '', tasks: [] },
-});
+};
 
+//console.log(snetOrgWorkspaces, swarmOrgWorkspaces, snet.value, swarm.value)
 let snetWorkspaces = {};
 let swarmWorkspaces = {};
 let lastRefresh = 0;
@@ -92,8 +94,8 @@ async function getDework() {
   localStorage.removeItem("swarmWorkspaces");
   const snetSlugs = await useGetWorkspaceSlug(orgSNET);
   const swarmSlugs = await useGetWorkspaceSlug(orgSwarm);
-  swarmSlug.value = swarmSlugs.data.getOrganization;
   snetSlug.value = snetSlugs.data.getOrganization;
+  swarmSlug.value = swarmSlugs.data.getOrganization;
   updateObjectWithSlugs(snet.value, snetSlugs);
   updateObjectWithSlugs(swarm.value, swarmSlugs);
   //console.log(snetSlugs, swarmSlugs)
@@ -144,16 +146,16 @@ const isWorkspaceReady = computed(() => {
 function openLink(id) {
   let workspaceSlug = '';
   let organizationSlug = '';
-  for ( let i in swarmSlug.value.workspaces) {
-    if (swarmSlug.value.workspaces[i].id == id) {
-      organizationSlug = swarmSlug.value.slug
-      workspaceSlug = swarmSlug.value.workspaces[i].slug
-    }
-  }
   for ( let i in snetSlug.value.workspaces) {
     if (snetSlug.value.workspaces[i].id == id) {
       organizationSlug = snetSlug.value.slug
       workspaceSlug = snetSlug.value.workspaces[i].slug
+    }
+  }
+  for ( let i in swarmSlug.value.workspaces) {
+    if (swarmSlug.value.workspaces[i].id == id) {
+      organizationSlug = swarmSlug.value.slug
+      workspaceSlug = swarmSlug.value.workspaces[i].slug
     }
   }
   window.open(`https://app.dework.xyz/${organizationSlug}/${workspaceSlug}/view/board`, "_blank");
@@ -164,18 +166,18 @@ async function exportData(id) {
   let workspaceSlug = '';
   let workspaceName = '';
   let organizationSlug = '';
-  for ( let i in swarmSlug.value.workspaces) {
-    if (swarmSlug.value.workspaces[i].id == id) {
-      organizationSlug = swarmSlug.value.slug
-      workspaceSlug = swarmSlug.value.workspaces[i].slug
-      workspaceName = swarmSlug.value.workspaces[i].name
-    }
-  }
   for ( let i in snetSlug.value.workspaces) {
     if (snetSlug.value.workspaces[i].id == id) {
       organizationSlug = snetSlug.value.slug
       workspaceSlug = snetSlug.value.workspaces[i].slug
       workspaceName = snetSlug.value.workspaces[i].name
+    }
+  }
+  for ( let i in swarmSlug.value.workspaces) {
+    if (swarmSlug.value.workspaces[i].id == id) {
+      organizationSlug = swarmSlug.value.slug
+      workspaceSlug = swarmSlug.value.workspaces[i].slug
+      workspaceName = swarmSlug.value.workspaces[i].name
     }
   }
   const tasks = await useGetWorkspaceTasks(id);
@@ -245,8 +247,8 @@ async function exportData(id) {
           </tr>
         </thead>
         <tbody>
-          <tr>Swarm</tr> 
-          <tr v-for="(workspace, key) in swarm" :key="'swarm-' + key">
+          <tr>SNET</tr> 
+          <tr v-for="(workspace, key) in snet" :key="'snet-' + key">
             <td>{{ workspace.name }}</td>
             <td class="centered">{{ countAuditedTasks(workspace.tasks) }}</td>
             <td class="centered">{{ countNonAuditedTasks(workspace.tasks) }}</td>
@@ -257,8 +259,8 @@ async function exportData(id) {
             <td><button @click="openLink(workspace.id)">Open Board</button></td>
             <td><button @click="exportData(workspace.id)">Export csv</button></td>
           </tr>
-          <tr>SNET</tr>
-          <tr v-for="(workspace, key) in snet" :key="'snet-' + key">
+          <tr>Swarm</tr>
+          <tr v-for="(workspace, key) in swarm" :key="'swarm-' + key">
             <td>{{ workspace.name }}</td>
             <td class="centered">{{ countAuditedTasks(workspace.tasks) }}</td>
             <td class="centered">{{ countNonAuditedTasks(workspace.tasks) }}</td>

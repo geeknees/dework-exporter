@@ -4,7 +4,9 @@ import Home2 from './components/Home2.vue'
 
 <template>
   <div>
-    <Home2 />
+  <Suspense>
+    <Home2 />  
+  </Suspense>
   </div>
 </template>
 
