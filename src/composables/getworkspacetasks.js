@@ -12,6 +12,10 @@ export async function useGetWorkspaceTasks(workspace) {
         id
         username
       }
+      auditLog {
+        createdAt
+        diff
+      }
       createdAt
       creator {
         id
@@ -52,7 +56,7 @@ export async function useGetWorkspaceTasks(workspace) {
     }, {
       headers,
     });
-
+    //console.log("query", response.data)
     return response.data;
   } catch (error) {
     console.error('Error fetching data:', error);

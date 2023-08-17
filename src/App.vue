@@ -1,12 +1,13 @@
 <script setup>
-import Home2 from './components/Home2.vue'
+import Nav from './components/Nav.vue'
 </script>
 
 <template>
   <div>
-  <Suspense>
-    <Home2 />  
-  </Suspense>
+    <Nav />
+    <Suspense>
+      <router-view /> 
+    </Suspense>
   </div>
 </template>
 
