@@ -175,8 +175,8 @@ function getChargeMonth(task) {
     return `${year}-${String(month).padStart(2, '0')}`;
   };
 
-  // If the status is not "IN_REVIEW" or the audit log is empty, return the appropriate month
-  if (task.status !== "IN_REVIEW" || task.auditLog.length === 0) {
+  // If the audit log is empty, return the appropriate month
+  if ( task.auditLog.length === 0) {
     const createdAtDate = new Date(task.createdAt);
     return getFormattedMonth(createdAtDate.getFullYear(), createdAtDate.getMonth() + 1);
   }
