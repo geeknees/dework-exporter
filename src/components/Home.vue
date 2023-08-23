@@ -171,44 +171,31 @@ function openLink(id) {
   //console.log('Open link for workspace ID:', id, swarmSlug.value, workspaceSlug, organizationSlug);
 }
 function getChargeMonth(task) {
-  const getFormattedMonth = (year, month) => {
-    return `${year}-${String(month).padStart(2, '0')}`;
+  // Format a date to "dd.mm.yy"
+  const formatDate = (date) => {
+    const d = new Date(date);
+    return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).toString().substr(-2)}`;
   };
 
-  // If the audit log is empty, return the appropriate month
-  if ( task.auditLog.length === 0) {
-    const createdAtDate = new Date(task.createdAt);
-    return getFormattedMonth(createdAtDate.getFullYear(), createdAtDate.getMonth() + 1);
+  // Check if the auditLog is empty
+  if (task.auditLog.length === 0) {
+    return formatDate(task.createdAt);
   }
 
-  // Parse the createdAt date of the task
-  const createdAtDate = new Date(task.createdAt);
-  const createdAtMonth = createdAtDate.getMonth();
-  const createdAtDay = createdAtDate.getDate();
-
-  // Count occurrences of each month in the audit log
-  const monthCounts = {};
-  task.auditLog.forEach(log => {
-    const logMonth = new Date(log.createdAt).getMonth();
-    monthCounts[logMonth] = (monthCounts[logMonth] || 0) + 1;
-  });
-
-  // Find the month with the most occurrences
-  let mostOccurrencesMonth = Object.keys(monthCounts).reduce((a, b) =>
-    monthCounts[a] > monthCounts[b] ? a : b
-  );
-
-  // Decide the charge month based on the task creation date and the audit log
-  let chargeMonth;
-  if (createdAtDay <= 15 && mostOccurrencesMonth == createdAtMonth) {
-    chargeMonth = createdAtMonth + 1;
-  } else if (createdAtDay > 15 && mostOccurrencesMonth == createdAtMonth + 1) {
-    chargeMonth = createdAtMonth + 2;
-  } else {
-    chargeMonth = createdAtMonth + 1;
+  // Look inside auditLog for a kind "E" with rhs of "IN_REVIEW", starting from the latest
+  for (let i = task.auditLog.length - 1; i >= 0; i--) {
+    const log = task.auditLog[i];
+    if (log.diff && log.diff.length > 0) {
+      const change = log.diff[0];
+      if (change.kind === 'E' && change.rhs === 'IN_REVIEW') {
+        //console.log("IN_REVIEW found", log.createdAt)
+        return formatDate(log.createdAt);
+      }
+    }
   }
 
-  return getFormattedMonth(createdAtDate.getFullYear(), chargeMonth);
+  // If no "IN_REVIEW" status is found, return the task's createdAt date
+  return formatDate(task.createdAt);
 }
 
 async function exportData(id) {
@@ -256,6 +243,7 @@ async function exportData(id) {
       //console.log("month",budgetMonth)
       csvContent += `"${name}","${link}","${tags}","${storyPoints}","${status}","${assignees}","${walletAddress}","${reward}","${dueDate}","${activities}","${budgetMonth}"\n`;
   }
+  //console.log(csvContent)
 
   // Convert the CSV content to a Blob
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
