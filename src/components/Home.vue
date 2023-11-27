@@ -15,7 +15,7 @@ let isCancelled = ref(false);
 let snet = ref({});
 let swarm = ref({});
 snet.value = await useGetOrganizationDetails(orgSNET);
-//swarm.value = await useGetOrganizationDetails(orgSwarm);
+swarm.value = await useGetOrganizationDetails(orgSwarm);
 //console.log(snet.value, swarm.value)
 
 /*snet.value = {
@@ -39,7 +39,7 @@ snet.value = await useGetOrganizationDetails(orgSNET);
   snetDeepFundingXAmbassador: { id: 'c294c052-31b1-4c3f-9c2b-9d6eeea0ada6', name: '', slug: '', tasks: [] },
 };*/
 
-swarm.value = {
+/*swarm.value = {
   swarmMainProjects: { id: 'a27a9088-25c4-4286-9684-9641bd817bb0', name: '', slug: '', tasks: [] },
   swarmBountyBoard: { id: '6767c971-7dd6-438c-874c-facee8d0d7ce', name: '', slug: '', tasks: [] },
   swarmEcoSystemMap: { id: 'c3d613f3-788d-43a2-88a2-2ecb844f72ea', name: '', slug: '', tasks: [] },
@@ -49,7 +49,7 @@ swarm.value = {
   swarmATHnew: { id: '14e889ba-f591-435c-8e9e-b214f72c14f2', name: '', slug: '', tasks: [] },
   swarmSnet: { id: '75412cbc-dabe-4f6b-9cf2-41bde61553c6', name: '', slug: '', tasks: [] },
   swarmVeterans: { id: 'fa90afaf-ec66-4f35-990c-e2524adbaa55', name: '', slug: '', tasks: [] },
-};
+};*/
 
 //console.log(snetOrgWorkspaces, swarmOrgWorkspaces, snet.value, swarm.value)
 let snetWorkspaces = {};
@@ -78,21 +78,33 @@ function updateObjectWithSlugs(object, slugs) {
 }
 
 async function getsnetWorkspaces() {
-  for (const key in snet.value) {
-    if (isCancelled.value) return;
-    const tasks = await useGetDeworkData(snet.value[key].id);
-    snet.value[key].tasks = tasks.data.getWorkspace.tasks;
-    //console.log("key", key)
-  }
+  if (isCancelled.value) return;
+  
+  const tasksPromises = Object.keys(snet.value).map(key => {
+    return useGetDeworkData(snet.value[key].id).then(tasks => {
+      return { key, tasks: tasks.data.getWorkspace.tasks };
+    });
+  });
+
+  const results = await Promise.all(tasksPromises);
+  results.forEach(({ key, tasks }) => {
+    snet.value[key].tasks = tasks;
+  });
 }
 
 async function getswarmWorkspaces() {
-  for (const key in swarm.value) {
-    if (isCancelled.value) return;
-    const tasks = await useGetDeworkData(swarm.value[key].id);
-    swarm.value[key].tasks = tasks.data.getWorkspace.tasks;
-    //console.log("key", key)
-  }
+  if (isCancelled.value) return;
+  
+  const tasksPromises = Object.keys(swarm.value).map(key => {
+    return useGetDeworkData(swarm.value[key].id).then(tasks => {
+      return { key, tasks: tasks.data.getWorkspace.tasks };
+    });
+  });
+
+  const results = await Promise.all(tasksPromises);
+  results.forEach(({ key, tasks }) => {
+    swarm.value[key].tasks = tasks;
+  });
 }
 
 async function getDework() {
@@ -114,13 +126,16 @@ async function getDework() {
   await getTasks();
   loaded.value = true;
 }
+
 async function getTasks() {
-  //console.log("Getting tasks...")
-  await getswarmWorkspaces();
-  await getsnetWorkspaces();
+  // Initiate both tasks simultaneously and wait for both to complete
+  await Promise.all([getswarmWorkspaces(), getsnetWorkspaces()]);
+
+  // Once both tasks are complete, update localStorage
   localStorage.setItem("snetWorkspaces", JSON.stringify(snet.value));
   localStorage.setItem("swarmWorkspaces", JSON.stringify(swarm.value));
 }
+
 
 function countAuditedTasks(tasks) {
   const auditedRegex = /\baudited\b/i;
